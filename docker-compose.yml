@@ -1,0 +1,44 @@
+version: '3'
+services:
+  app:
+    build: .
+    ports:
+      - "8082:8082"
+    depends_on:
+      - mongo
+    volumes:
+      - ./:/src
+      - go-mod-cache:/go/pkg
+      - go-build-cache:/root/.cache/go-build
+    environment:
+      MONGO_URI: "mongodb://mongo:27017"
+
+  mongo:
+    image: mongo
+    env_file:
+      - .env
+    ports:
+      - "27017:27017"
+
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    volumes:
+      - .:/app
+    depends_on:
+      - mongo
+
+volumes:
+  go-mod-cache:
+    external: false
+  go-build-cache:
+    external: false
+  go-lint-cache:
+    external: false
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
